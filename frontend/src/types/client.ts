@@ -23,6 +23,14 @@ export type ClientCreatePayload = {
   status: ClientStatus
 }
 
+export type ClientAiAnalysis = {
+  summary: string
+  next_steps: string[]
+  questions: string[]
+  risks: string[]
+  draft_message: string
+}
+
 export const statusOptions: Array<{ value: ClientStatus; label: string }> = [
   { value: 'new', label: 'Новый' },
   { value: 'in_progress', label: 'В работе' },

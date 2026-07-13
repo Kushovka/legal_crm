@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { AiAnalysisModal } from './components/AiAnalysisModal'
 import { AuthPage } from './components/AuthPage'
 import { ClientForm } from './components/ClientForm'
 import { ClientsTable } from './components/ClientsTable'
@@ -85,6 +86,7 @@ const ClientDetails = ({
   changingClientId,
   deletingClientId,
   onBack,
+  onOpenAiAnalysis,
   onStatusChange,
   onDelete,
 }: {
@@ -92,6 +94,7 @@ const ClientDetails = ({
   changingClientId: number | null
   deletingClientId: number | null
   onBack: () => void
+  onOpenAiAnalysis: (client: Client) => void
   onStatusChange: (clientId: number, status: ClientStatus) => Promise<void>
   onDelete: (client: Client) => Promise<void>
 }) => (
@@ -118,14 +121,23 @@ const ClientDetails = ({
               <p className="mt-1 text-sm text-stone-500">ID {client.id}</p>
             </div>
           </div>
-          <button
-            className="h-10 w-full rounded-xl border border-red-100 bg-red-50 px-4 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-100 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
-            disabled={deletingClientId === client.id}
-            type="button"
-            onClick={() => void onDelete(client)}
-          >
-            Удалить
-          </button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <button
+              className="h-10 w-full rounded-xl border border-stone-200 bg-white px-4 text-sm font-semibold text-stone-700 shadow-sm transition hover:bg-stone-50 sm:w-auto"
+              type="button"
+              onClick={() => onOpenAiAnalysis(client)}
+            >
+              AI-анализ
+            </button>
+            <button
+              className="h-10 w-full rounded-xl border border-red-100 bg-red-50 px-4 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-100 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
+              disabled={deletingClientId === client.id}
+              type="button"
+              onClick={() => void onDelete(client)}
+            >
+              Удалить
+            </button>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-2">
@@ -178,6 +190,7 @@ const ClientDetails = ({
 
 const Dashboard = ({ user, onLogout }: { user: User; onLogout: () => void }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [aiAnalysisClient, setAiAnalysisClient] = useState<Client | null>(null)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [activeView, setActiveView] = useState<ActiveView>('clients')
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
@@ -376,6 +389,7 @@ const Dashboard = ({ user, onLogout }: { user: User; onLogout: () => void }) => 
                 deletingClientId={deletingClientId}
                 onBack={() => setSelectedClient(null)}
                 onDelete={handleDelete}
+                onOpenAiAnalysis={setAiAnalysisClient}
                 onStatusChange={handleStatusChange}
               />
             ) : activeView === 'clients' ? (
@@ -447,6 +461,7 @@ const Dashboard = ({ user, onLogout }: { user: User; onLogout: () => void }) => 
                   changingClientId={changingClientId}
                   deletingClientId={deletingClientId}
                   onDelete={handleDelete}
+                  onOpenAiAnalysis={setAiAnalysisClient}
                   onOpenDetails={setSelectedClient}
                   onStatusChange={handleStatusChange}
                 />
@@ -466,6 +481,21 @@ const Dashboard = ({ user, onLogout }: { user: User; onLogout: () => void }) => 
           onSubmit={handleCreate}
         />
       </Modal>
+
+      {aiAnalysisClient && (
+        <Modal
+          isOpen={Boolean(aiAnalysisClient)}
+          size="wide"
+          title={`AI-анализ: ${aiAnalysisClient.name}`}
+          onClose={() => setAiAnalysisClient(null)}
+        >
+          <AiAnalysisModal
+            client={aiAnalysisClient}
+            onClose={() => setAiAnalysisClient(null)}
+            onCopied={() => setToast({ type: 'success', text: 'Черновик скопирован' })}
+          />
+        </Modal>
+      )}
 
       {toast && <Toast toast={toast} onClose={() => setToast(null)} />}
     </main>

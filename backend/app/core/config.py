@@ -21,6 +21,9 @@ class Settings:
     SMTP_TIMEOUT_SECONDS = float(os.getenv("SMTP_TIMEOUT_SECONDS", "8"))
     DEV_SEED_ENABLED = os.getenv("DEV_SEED_ENABLED", "true").lower() in {"1", "true", "yes", "on"}
     SECRET_KEY = os.getenv("SECRET_KEY", "change-this-secret-key-for-local-development")
+    OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
+    OLLAMA_TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "120"))
 
     @property
     def DB_URL(self) -> str:

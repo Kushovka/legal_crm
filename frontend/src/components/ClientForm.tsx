@@ -22,7 +22,7 @@ export const ClientForm = ({ isSubmitting, onSubmit, onCancel }: Props) => {
     if (isSubmitting) return
 
     if (!name.trim() || !phone.trim()) {
-      setError('Заполните имя и телефон')
+      setError('Заполните ФИО и телефон')
       return
     }
 
@@ -51,12 +51,12 @@ export const ClientForm = ({ isSubmitting, onSubmit, onCancel }: Props) => {
       )}
 
       <label className="block">
-        <span className="text-sm font-semibold text-stone-800">Имя</span>
+        <span className="text-sm font-semibold text-stone-800">ФИО</span>
         <input
           className="mt-2 h-12 w-full rounded-xl border border-stone-200 bg-white px-3.5 text-sm text-stone-950 shadow-sm outline-none transition placeholder:text-stone-400 hover:border-stone-300 focus:border-stone-500 focus:ring-4 focus:ring-stone-100 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400"
           disabled={isSubmitting}
           maxLength={255}
-          placeholder="Анна Петрова"
+          placeholder="Кушов Кирилл Сергеевич"
           value={name}
           onChange={(event) => setName(event.target.value)}
         />

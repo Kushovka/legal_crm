@@ -25,6 +25,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      ollama-init:
+        condition: service_completed_successfully
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-lawcrm}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lawcrm}
@@ -40,6 +42,9 @@ services:
       NOTIFICATION_EMAIL: ${NOTIFICATION_EMAIL:-}
       SMTP_USE_SSL: ${SMTP_USE_SSL:-true}
       SECRET_KEY: ${SECRET_KEY:-change-this-secret-key-for-local-development}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma3:4b}
+      OLLAMA_TIMEOUT: ${OLLAMA_TIMEOUT:-120}
     ports:
       - "${BACKEND_PUBLIC_PORT:-8001}:8000"
     healthcheck:
@@ -66,6 +71,42 @@ services:
     ports:
       - "${FRONTEND_PUBLIC_PORT:-5173}:80"
 
+  ollama:
+    image: ollama/ollama
+    container_name: affordable_law_ollama
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+    ports:
+      - "${OLLAMA_PUBLIC_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "OLLAMA_HOST=http://127.0.0.1:11434 ollama list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  ollama-init:
+    image: ollama/ollama
+    container_name: affordable_law_ollama_init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma3:4b}
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "ollama list | grep -q \"^$${OLLAMA_MODEL}[[:space:]]\" ||
+      ollama pull \"$${OLLAMA_MODEL}\""
+    restart: "no"
+
 volumes:
   pg_data:
     name: affordable_law_pg_data
+  ollama_data:
+    name: affordable_law_ollama_data

@@ -1,5 +1,6 @@
 import type { Client, ClientStatus } from '../types/client'
 import { statusOptions } from '../types/client'
+import { formatClientDisplayName } from '../utils/name'
 import { StatusBadge } from './StatusBadge'
 
 const formatDate = (value: string) =>
@@ -15,6 +16,7 @@ type Props = {
   clients: Client[]
   changingClientId: number | null
   deletingClientId: number | null
+  onOpenAiAnalysis: (client: Client) => void
   onOpenDetails: (client: Client) => void
   onStatusChange: (clientId: number, status: ClientStatus) => Promise<void>
   onDelete: (client: Client) => Promise<void>
@@ -24,6 +26,7 @@ export const ClientsTable = ({
   clients,
   changingClientId,
   deletingClientId,
+  onOpenAiAnalysis,
   onOpenDetails,
   onStatusChange,
   onDelete,
@@ -54,10 +57,12 @@ export const ClientsTable = ({
               <td className="border-b border-stone-100 px-5 py-3.5">
                 <div className="flex items-center gap-3">
                   <div className="grid h-9 w-9 place-items-center rounded-xl bg-stone-100 text-sm font-semibold text-stone-700 ring-1 ring-stone-200 transition group-hover:bg-stone-950 group-hover:text-white">
-                    {client.name.trim().slice(0, 1).toUpperCase()}
+                    {formatClientDisplayName(client.name).slice(0, 1)}
                   </div>
                   <div className="min-w-0">
-                    <p className="max-w-[180px] truncate text-sm font-semibold text-stone-950">{client.name}</p>
+                    <p className="max-w-[180px] truncate text-sm font-semibold text-stone-950" title={client.name}>
+                      {formatClientDisplayName(client.name)}
+                    </p>
                     <p className="mt-0.5 text-xs text-stone-400">ID {client.id}</p>
                   </div>
                 </div>
@@ -91,6 +96,13 @@ export const ClientsTable = ({
                     </span>
                   </div>
                   <button
+                    className="h-9 rounded-xl border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-700 shadow-sm transition hover:border-stone-300 hover:bg-stone-50"
+                    type="button"
+                    onClick={() => onOpenAiAnalysis(client)}
+                  >
+                    AI-анализ
+                  </button>
+                  <button
                     className="grid h-9 w-9 place-items-center rounded-xl border border-red-100 bg-red-50 text-sm font-semibold text-red-600 shadow-sm transition hover:border-red-200 hover:bg-red-100 focus:outline-none focus:ring-4 focus:ring-red-100 disabled:cursor-wait disabled:opacity-60"
                     disabled={deletingClientId === client.id}
                     title="Удалить клиента"
@@ -117,10 +129,12 @@ export const ClientsTable = ({
           <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-start min-[420px]:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-stone-100 text-sm font-semibold text-stone-700 ring-1 ring-stone-200">
-                {client.name.trim().slice(0, 1).toUpperCase()}
+                {formatClientDisplayName(client.name).slice(0, 1)}
               </div>
               <div className="min-w-0">
-                <h3 className="truncate text-base font-semibold text-stone-950">{client.name}</h3>
+                <h3 className="truncate text-base font-semibold text-stone-950" title={client.name}>
+                  {formatClientDisplayName(client.name)}
+                </h3>
                 <p className="mt-1 text-sm text-stone-600">{client.phone}</p>
               </div>
             </div>
@@ -132,7 +146,14 @@ export const ClientsTable = ({
             <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-stone-400">Дата добавления</p>
             <p className="mt-1 text-sm font-medium text-stone-700">{formatDate(client.created_at)}</p>
           </div>
-          <div className="mt-4 flex justify-stretch min-[420px]:justify-end" onClick={(event) => event.stopPropagation()}>
+          <div className="mt-4 grid gap-2 min-[420px]:grid-cols-2" onClick={(event) => event.stopPropagation()}>
+            <button
+              className="h-11 w-full rounded-xl border border-stone-200 bg-white px-3 text-sm font-semibold text-stone-700 shadow-sm transition hover:bg-stone-50"
+              type="button"
+              onClick={() => onOpenAiAnalysis(client)}
+            >
+              AI-анализ
+            </button>
             <button
               className="h-11 w-full rounded-xl border border-red-100 bg-red-50 px-3 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-100 disabled:opacity-60 min-[420px]:w-auto"
               disabled={deletingClientId === client.id}

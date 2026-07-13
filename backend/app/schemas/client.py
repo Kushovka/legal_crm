@@ -67,3 +67,23 @@ class ClientStats(BaseModel):
     new: int
     in_progress: int
     closed: int
+
+
+class AiAnalysisRequest(BaseModel):
+    case_description: str = Field(..., min_length=1, max_length=4000)
+
+    @field_validator("case_description")
+    @classmethod
+    def strip_case_description(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Описание ситуации обязательно")
+        return cleaned
+
+
+class AiAnalysisResponse(BaseModel):
+    summary: str = Field(..., min_length=1)
+    next_steps: list[str] = Field(..., min_length=1)
+    questions: list[str] = Field(default_factory=list)
+    risks: list[str] = Field(default_factory=list)
+    draft_message: str = Field(..., min_length=1)
