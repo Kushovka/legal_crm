@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16
+    container_name: affordable_law_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lawcrm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lawcrm}
+      POSTGRES_DB: ${POSTGRES_DB:-law_crm_db}
+    ports:
+      - "${POSTGRES_PUBLIC_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: affordable_law_api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lawcrm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lawcrm}
+      POSTGRES_DB: ${POSTGRES_DB:-law_crm_db}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      SMTP_HOST: ${SMTP_HOST:-smtp.yandex.ru}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      NOTIFICATION_EMAIL: ${NOTIFICATION_EMAIL:-}
+      SMTP_USE_SSL: ${SMTP_USE_SSL:-true}
+      SECRET_KEY: ${SECRET_KEY:-change-this-secret-key-for-local-development}
+    ports:
+      - "${BACKEND_PUBLIC_PORT:-8001}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    command: >
+      sh -c "alembic upgrade head &&
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000"
+
+volumes:
+  pg_data:
+    name: affordable_law_pg_data
