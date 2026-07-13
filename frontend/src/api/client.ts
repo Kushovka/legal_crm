@@ -6,6 +6,8 @@ export const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use((config) => {
+  config.headers['ngrok-skip-browser-warning'] = 'true'
+
   const token = window.localStorage.getItem('law_crm_token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
